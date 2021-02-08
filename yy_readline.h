@@ -1,0 +1,47 @@
+#ifndef WIN32
+#include <readline/readline.h>
+#include <readline/history.h>
+
+static char *rl_line=NULL;
+static char *rl_start=NULL;
+static int   rl_len=0;
+
+static int rl_input (char *buf, const int max)
+{
+    int result=0;
+
+    if (rl_len == 0)
+    {
+        if (rl_start)
+            free(rl_start);
+        rl_start =(char *)readline(">> ");
+        if (rl_start == NULL)
+            return 0;
+        rl_line = rl_start;
+        rl_len = strlen (rl_line)+1;
+        if (rl_len != 1)
+            add_history (rl_line);
+        rl_line[rl_len-1] = '\n';
+    }
+
+    if (rl_len <= max)
+    {
+        strncpy (buf, rl_line, rl_len);
+        result = rl_len;
+        rl_len = 0;
+
+        return result;
+    }
+    else
+    {
+        strncpy (buf, rl_line, max);
+        result = max;
+        rl_line += max;
+        rl_len -= max;
+
+        return max;
+    }
+}
+#undef YY_INPUT
+#define YY_INPUT(buf,res,max) (res=rl_input(buf,max))
+#endif
